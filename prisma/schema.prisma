@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+// here are the models we need to use for the database tables
+// 1
+model users{
+  id BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  firstName String
+  lastName String
+  email String @unique
+  mobile String
+  password String
+  otp String
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+
+  customers customers[]
+  categories categories[]
+  products products[]
+  invoices invoices[]
+  invoice_products invoice_products[]
+}
+// 2
+model customers{
+  id BigInt @id @default(autoincrement())  @db.UnsignedBigInt
+  name String
+  email String
+  mobile String
+  user_id BigInt @unique @db.UnsignedBigInt
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  users users @relation(fields: [user_id],references: [id],onDelete: Restrict,onUpdate: Cascade)
+  invoices invoices[]
+}
+// 3
+model categories{
+  id BigInt @id @default(autoincrement())  @db.UnsignedBigInt
+  name String
+  user_id BigInt @unique @db.UnsignedBigInt
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  users users @relation(fields: [user_id],references: [id],onDelete: Restrict,onUpdate: Cascade)
+  products products[]
+}
+// 4
+model products{
+  id BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id BigInt @unique @db.UnsignedBigInt
+  category_id BigInt @unique @db.UnsignedBigInt
+  name String
+  price String
+  unit String
+  img_url String
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+
+  users users @relation(fields: [user_id],references: [id],onDelete: Restrict,onUpdate: Cascade)
+  categories categories @relation(fields: [category_id],references: [id],onDelete: Restrict,onUpdate: Cascade)
+  invoice_products invoice_products?
+}
+// 5
+model invoices{
+  id BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  total String
+  discount String
+  vat String
+  payable String
+  user_id BigInt @unique @db.UnsignedBigInt
+  customer_id BigInt @unique @db.UnsignedBigInt
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  users users @relation(fields: [user_id],references: [id],onDelete: Restrict,onUpdate: Cascade)
+  customers customers @relation(fields: [customer_id],references: [id],onDelete: Restrict,onUpdate: Cascade)
+  invoice_products invoice_products[]
+}
+// 6
+model invoice_products{
+  id BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  invoice_id BigInt @unique @db.UnsignedBigInt
+  product_id BigInt @unique @db.UnsignedBigInt
+  user_id BigInt @unique @db.UnsignedBigInt
+  qty String
+  salePrice String
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  users users @relation(fields: [user_id],references: [id],onDelete: Restrict,onUpdate: Cascade)
+  products products @relation(fields: [product_id],references: [id],onDelete: Restrict,onUpdate: Cascade)
+  invoices invoices @relation(fields: [invoice_id],references: [id],onDelete: Restrict,onUpdate: Cascade)
+}
